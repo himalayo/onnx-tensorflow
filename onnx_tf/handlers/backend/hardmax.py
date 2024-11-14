@@ -1,14 +1,30 @@
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from onnx_tf.handlers.backend_handler import BackendHandler
 from onnx_tf.handlers.handler import onnx_op
 from onnx_tf.handlers.handler import tf_func
 
+@tf.function
+def _hardmax(logits, name = None) -> tf.Tensor:
+    """Returns batched one-hot vectors.
+
+    The depth index containing the `1` is that of the maximum logit value.
+
+    Args:
+      logits: A batch tensor of logit values.
+      name: Name to use when creating ops.
+    Returns:
+      A batched one-hot tensor.
+    """
+    with tf.name_scope(name or "Hardmax"):
+        logits = tf.convert_to_tensor(logits, name="logits")
+        depth = logits.shape[-1] or tf.shape(logits)[-1]
+        return tf.one_hot(tf.argmax(logits, -1), depth, dtype=logits.dtype)
+
 
 @onnx_op("Hardmax")
-@tf_func(tfa.seq2seq.hardmax)
+@tf_func(_hardmax)
 class Hardmax(BackendHandler):
 
   @classmethod
@@ -26,7 +42,7 @@ class Hardmax(BackendHandler):
       cal_shape = (tf.reduce_prod(shape[0:axis]),
                    tf.reduce_prod(shape[axis:tf.size(shape)]))
       x = tf.reshape(x, cal_shape)
-      return [tf.reshape(tfa.seq2seq.hardmax(x), shape)]
+      return [tf.reshape(_hardmax(x), shape)]
 
     else: # opset 13
       axis = node.attrs.get("axis", -1) # default for axis is -1 in opset 13
@@ -40,7 +56,7 @@ class Hardmax(BackendHandler):
       perm = tf.concat([perm1, [len(tf.shape(x)) - 1], perm2, [axis]], -1)
       x = tf.transpose(x, perm)
 
-      return [tf.transpose(tfa.seq2seq.hardmax(x), perm)]
+      return [tf.transpose(_hardmax(x), perm)]
 
   @classmethod
   def version_1(cls, node, **kwargs):

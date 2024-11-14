@@ -70,8 +70,14 @@ class Pad(BackendHandler):
 
     else:  # for opset 11
       paddings = tensor_dict[node.inputs[1]]
-      constant_values = tensor_dict[node.inputs[2]] if len(
-          node.inputs) == 3 else 0
+
+      if len(node.inputs) == 3:
+        if node.inputs[2] != '':
+          constant_values = tensor_dict[node.inputs[2]]
+        else:
+          constant_values = 0
+      else:
+        constant_values = 0
 
     cond = tf.cond(check_positive(paddings),
                    lambda: process_pos_pads(x, paddings, constant_values),
