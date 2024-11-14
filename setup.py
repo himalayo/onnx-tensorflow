@@ -43,7 +43,7 @@ setuptools.setup(
     description=
     'Tensorflow backend for ONNX (Open Neural Network Exchange).',
     install_requires=[
-        onnx_dep, "PyYAML", "tensorflow_addons", "tensorflow_probability"
+        onnx_dep, "PyYAML", "tensorflow_probability"
     ],
     entry_points={
         "console_scripts": [

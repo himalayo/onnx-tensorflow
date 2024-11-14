@@ -6,7 +6,7 @@ from onnx_tf.handlers.handler import onnx_op
 from onnx_tf.handlers.handler import tf_func
 
 @tf.function
-def _hardmax(logits, name = None) -> tf.Tensor:
+def hardmax(logits, name = None) -> tf.Tensor:
     """Returns batched one-hot vectors.
 
     The depth index containing the `1` is that of the maximum logit value.
